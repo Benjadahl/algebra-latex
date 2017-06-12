@@ -6,8 +6,9 @@ import logger from './logger'
  * @param  {object} parsedLatex An object parsed by "./parser.js"
  * @return {string} A calculatable string, eg. "(1+3)/4*sqrt(2)"
  */
-const formatter = (parsedLatex) => {
+const formatter = (parsedLatex, impliedMultiplication) => {
   let formattedString = ''
+  console.log(impliedMultiplication);
 
   formattedString += '('
 
@@ -32,16 +33,18 @@ const formatter = (parsedLatex) => {
 
     if (item.type === 'variable') {
       if (i > 0) {
-        if (parsedLatex[i - 1].type !== 'operator') {
-          logger.debug('Adding * before variable: ' + item.value + ', previous item: ' + parsedLatex[i - 1].type)
-          formattedString += '*'
+        if (impliedMultiplication) {
+          if (parsedLatex[i - 1].type !== 'operator') {
+            logger.debug('Adding * before variable: ' + item.value + ', previous item: ' + parsedLatex[i - 1].type)
+            formattedString += '*'
+          }
         }
       }
       formattedString += item.value
     }
 
     if (item.type === 'group') {
-      formattedString += formatter(item.value)
+      formattedString += formatter(item.value, impliedMultiplication)
     }
 
     if (item.type === 'token') {
@@ -56,7 +59,7 @@ const formatter = (parsedLatex) => {
       if (item.value === 'frac') {
         if (parsedLatex[i + 1].type === 'group' && parsedLatex[i + 2].type === 'group') {
           logger.debug('Found fraction')
-          formattedString += formatter(parsedLatex[i + 1].value) + '/' + formatter(parsedLatex[i + 2].value)
+          formattedString += formatter(parsedLatex[i + 1].value, impliedMultiplication) + '/' + formatter(parsedLatex[i + 2].value, impliedMultiplication)
           i += 2
         } else {
           return new Error('Fraction must have 2 following parameters')
@@ -66,7 +69,7 @@ const formatter = (parsedLatex) => {
       if (item.value === 'sqrt') {
         if (parsedLatex[i + 1].type === 'group') {
           logger.debug('Found square root')
-          formattedString += 'sqrt' + formatter(parsedLatex[i + 1].value)
+          formattedString += 'sqrt' + formatter(parsedLatex[i + 1].value, impliedMultiplication)
           i++
         } else {
           logger.debug('Square root did not have any following parameters, ignoring')

@@ -52,9 +52,9 @@ class AlgebraLatex {
    * Will return a serialized string eg. 2*(3+4)/(sqrt(5))-8
    * @return string The serialized string
    */
-  toMath () {
+  toMath (impliedMultiplication = true) {
     if (this.formattedMath == null) {
-      this.formattedMath = stripParenthesis(formatLatex(this.structure))
+      this.formattedMath = stripParenthesis(formatLatex(this.structure, impliedMultiplication))
     }
 
     return this.formattedMath
